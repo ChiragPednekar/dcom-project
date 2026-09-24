@@ -21,7 +21,16 @@ import plotly.graph_objects as go
 import streamlit as st
 
 import huffman
-import make_plots
+# matplotlib is only needed for the PDF/PNG export. In a WebAssembly build
+# (stlite/Pyodide) it may be unavailable or slow to load, so treat it as
+# optional rather than letting an import failure take the whole app down.
+try:
+    import make_plots
+    EXPORT_AVAILABLE = True
+except Exception as _export_err:  # pragma: no cover - environment dependent
+    make_plots = None
+    EXPORT_AVAILABLE = False
+    _EXPORT_ERROR = _export_err
 import ui_helpers as ui
 from channel import channel_capacity, expected_block_success
 from error_control import CRC8_WIDTH, hamming_overhead_ratio
@@ -522,24 +531,44 @@ with tab_compare:
 
     e1, e2, e3 = st.columns(3)
     with e1:
-        st.download_button(
-            "📄  PDF report", type="primary", use_container_width=True,
-            data=make_plots.export_pdf(message, stats, results, int(trials)),
-            file_name="iotguard_report.pdf", mime="application/pdf",
-            help="Cover page with all the numbers, followed by the three "
-                 "comparison charts.")
+        if EXPORT_AVAILABLE:
+            st.download_button(
+                "📄  PDF report", type="primary", use_container_width=True,
+                data=make_plots.export_pdf(message, stats, results, int(trials)),
+                file_name="iotguard_report.pdf", mime="application/pdf",
+                help="Cover page with all the numbers, followed by the three "
+                     "comparison charts.")
+        else:
+            st.button("📄  PDF report", disabled=True, use_container_width=True,
+                      help="Needs matplotlib, which isn't available in this "
+                           "browser build. Run the app locally to export a PDF.")
     with e2:
-        st.download_button(
-            "🖼️  PNG bundle (.zip)", use_container_width=True,
-            data=make_plots.export_png_bundle(message, stats, results,
-                                              int(trials), csv_text),
-            file_name="iotguard_charts.zip", mime="application/zip",
-            help="High-resolution PNGs of every chart plus the raw results CSV.")
+        if EXPORT_AVAILABLE:
+            st.download_button(
+                "🖼️  PNG bundle (.zip)", use_container_width=True,
+                data=make_plots.export_png_bundle(message, stats, results,
+                                                  int(trials), csv_text),
+                file_name="iotguard_charts.zip", mime="application/zip",
+                help="High-resolution PNGs of every chart plus the raw "
+                     "results CSV.")
+        else:
+            st.button("🖼️  PNG bundle (.zip)", disabled=True,
+                      use_container_width=True,
+                      help="Needs matplotlib, which isn't available in this "
+                           "browser build. Run the app locally to export PNGs.")
     with e3:
         st.download_button(
             "📈  Raw data (.csv)", use_container_width=True,
             data=csv_text, file_name="iotguard_results.csv", mime="text/csv",
             help="Every data point behind the charts.")
+
+    if not EXPORT_AVAILABLE:
+        st.caption(
+            "Chart image export is disabled in this hosted build — the plotting "
+            "library isn't available in the browser runtime. The CSV above has "
+            "every number behind the charts, and running the app locally "
+            "(`./run.sh`) restores the full PDF and PNG export."
+        )
 
 
 # --------------------------------------------------------------------------- #

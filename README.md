@@ -69,6 +69,38 @@ artefact.
 - **How It Works** — plain-language explanation of each stage.
 - **Export** — PDF report, PNG bundle (`.zip`), or raw CSV.
 
+## Deploying to Vercel
+
+Streamlit is a stateful server and **cannot run on Vercel's serverless
+runtime**. Instead this repo ships a [stlite](https://github.com/whitphx/stlite)
+build: the same Python modules run inside the browser via WebAssembly
+(Pyodide), producing a purely static site that Vercel serves directly.
+
+```bash
+vercel --prod
+```
+
+`vercel.json` runs `build.sh` (which copies the Python modules into `public/`)
+and publishes `public/` as a static site. No server, no Python runtime on
+Vercel's side — the visitor's browser does all the work.
+
+There is one source of truth for the algorithms: edit `app.py` and friends at
+the repo root, and `build.sh` copies them into the bundle. The `public/*.py`
+copies are generated and git-ignored.
+
+Two caveats for the hosted build:
+
+- **First load takes 15–30 seconds** while the browser downloads the Python
+  runtime and Plotly. It is cached afterwards.
+- **PDF/PNG export is disabled** — it needs matplotlib, which is a large wheel
+  and is omitted to keep load times reasonable. The CSV export still works, and
+  running locally (`./run.sh`) restores the full export. The app detects this
+  and disables those buttons cleanly rather than erroring.
+
+If you would rather have the full-fat version with export working, deploy to
+[Streamlit Community Cloud](https://share.streamlit.io) instead — it runs this
+repo unmodified.
+
 ## Files
 
 | File | Responsibility |
@@ -80,6 +112,8 @@ artefact.
 | `make_plots.py` | matplotlib figures for the PDF/PNG export |
 | `ui_helpers.py` | HTML/CSS rendering helpers for the GUI |
 | `app.py` | Streamlit interface — contains no algorithms |
+| `public/index.html` | stlite loader for the static WebAssembly build |
+| `build.sh` | Assembles the `public/` bundle for Vercel |
 | `test_iotguard.py` | 48 correctness checks on the simulation core |
 
 ## Modelling assumptions
