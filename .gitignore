@@ -1,0 +1,11 @@
+# Virtual environment (2+ GB, rebuilt by run.sh)
+.venv/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# macOS
+.DS_Store
+# AppleDouble sidecars created when copying to exFAT/FAT drives
+._*
