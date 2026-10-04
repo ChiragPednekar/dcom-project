@@ -60,14 +60,18 @@ artefact.
 
 ## Interface
 
-- **Live Demo** — one transmission, stage by stage. Bits the channel flipped are
-  painted red, and you can watch them disappear between the received stream and
-  the Hamming-corrected payload. Ends in a green check or a red cross.
-- **Comparison & Charts** — statistical averages over many trials, a
-  side-by-side table, and interactive success/overhead/retransmission curves
-  swept across p.
-- **How It Works** — plain-language explanation of each stage.
-- **Export** — PDF report, PNG bundle (`.zip`), or raw CSV.
+The sidebar has just two inputs: the sensor message and the channel noise `p`.
+Run counts, the ARQ resend limit and chart range sit under **Advanced settings**.
+
+- **Live Demo** — pick a protection method and send the message once. Five
+  steps: original → Huffman-compressed → protection added → after the noisy
+  channel (flipped bits in red) → decoded result with a green check or red
+  cross. Entropy and the Huffman codebook are under "Huffman details".
+- **Compare Methods** — all three methods run many times at the current noise
+  level: one results table, a one-line summary of the winner, and two charts
+  across noise levels (messages delivered, and bits sent).
+- **Download results** — PDF report (includes the retransmissions chart too),
+  PNG bundle (`.zip`), or raw CSV.
 
 ## Deploying to Vercel
 
